@@ -154,9 +154,9 @@ export const samTools = {
     };
 
     if (uei) params.ueiSAM = uei;
-    if (query) params.entityName = query;
-    if (state) params.stateProvince = state;
-    if (naics) params.naicsCode = naics;
+    if (query) params.legalBusinessName = query;
+    if (state) params.physicalAddressProvinceOrStateCode = state;
+    if (naics) params.primaryNaics = naics;
 
     const response = await ApiClient.samGet('/entity-information/v2/entities', params);
 
@@ -334,7 +334,7 @@ export const samTools = {
     };
 
     if (uei) params.ueiSAM = uei;
-    if (entity_name) params.entityName = entity_name;
+    if (entity_name) params.legalBusinessName = entity_name;
 
     const response = await ApiClient.samGet('/entity-information/v2/exclusions', params);
 
