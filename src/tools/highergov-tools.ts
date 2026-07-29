@@ -225,7 +225,7 @@ function normalizeContractFull(raw: any) {
 function contactBlock(c: any) {
   if (!c) return null;
   return {
-    name: strOrNull(c.contact_name) ?? [c.contact_first_name, c.contact_last_name].filter(Boolean).join(' ') || null,
+    name: strOrNull(c.contact_name) ?? ([c.contact_first_name, c.contact_last_name].filter(Boolean).join(' ') || null),
     email: strOrNull(c.contact_email),
     phone: strOrNull(c.contact_phone),
     title: strOrNull(c.contact_title),
@@ -270,7 +270,7 @@ function normalizeOpportunity(raw: any) {
 
 function normalizePersonSummary(raw: any) {
   return {
-    name: strOrNull(raw.contact_name) ?? [raw.contact_first_name, raw.contact_last_name].filter(Boolean).join(' ') || null,
+    name: strOrNull(raw.contact_name) ?? ([raw.contact_first_name, raw.contact_last_name].filter(Boolean).join(' ') || null),
     email: strOrNull(raw.contact_email ?? raw.email),
     phone: strOrNull(raw.contact_phone ?? raw.phone),
     title: strOrNull(raw.contact_title ?? raw.title),
