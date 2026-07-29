@@ -15,7 +15,7 @@ export const samTools = {
               description: "SAM.gov API key (optional if SAM_GOV_API_KEY env var is set)"
             },
             query: {
-              type: "string", 
+              type: "string",
               description: "Entity name to search (e.g., 'Boeing', 'Acme Corp')"
             },
             state: {
@@ -39,7 +39,7 @@ export const samTools = {
         }
       },
       {
-        name: "get_sam_opportunities", 
+        name: "get_sam_opportunities",
         description: "Fetch federal contract opportunities from SAM.gov by date range, keywords, or set-aside types. Perfect for finding new business opportunities.",
         inputSchema: {
           type: "object",
@@ -53,7 +53,7 @@ export const samTools = {
               description: "Start date for opportunities (MM/dd/yyyy format, required)"
             },
             posted_to: {
-              type: "string", 
+              type: "string",
               description: "End date for opportunities (MM/dd/yyyy format, required)"
             },
             keyword: {
@@ -80,7 +80,7 @@ export const samTools = {
         name: "get_sam_entity_details",
         description: "Get comprehensive details for a specific entity using their UEI. Returns registration info, business types, certifications, and contact details.",
         inputSchema: {
-          type: "object", 
+          type: "object",
           properties: {
             api_key: {
               type: "string",
@@ -101,7 +101,7 @@ export const samTools = {
           type: "object",
           properties: {
             api_key: {
-              type: "string", 
+              type: "string",
               description: "SAM.gov API key (optional if SAM_GOV_API_KEY env var is set)"
             },
             uei: {
@@ -121,7 +121,7 @@ export const samTools = {
 
   async callTool(name: string, args: any): Promise<any> {
     const sanitizedArgs = ApiClient.sanitizeInput(args);
-    
+
     switch(name) {
       case "search_sam_entities":
         return await this.searchEntities(sanitizedArgs);
@@ -138,10 +138,10 @@ export const samTools = {
 
   async searchEntities(args: any): Promise<any> {
     const { api_key, query, state, naics, uei, limit = 10 } = args;
-    
+
     // Use environment variable if API key not provided in args
     const samApiKey = api_key || process.env.SAM_GOV_API_KEY;
-    
+
     if (!samApiKey) {
       throw new Error("SAM.gov API key is required. Please provide it as a parameter or set SAM_GOV_API_KEY environment variable");
     }
@@ -158,8 +158,8 @@ export const samTools = {
     if (state) params.stateProvince = state;
     if (naics) params.naicsCode = naics;
 
-    const response = await ApiClient.samGet('/entity-information/v4/entities', params);
-    
+    const response = await ApiClient.samGet('/entity-information/v2/entities', params);
+
     if (!response.success) {
       return { error: response.error };
     }
@@ -192,14 +192,14 @@ export const samTools = {
 
   async getOpportunities(args: any): Promise<any> {
     const { api_key, posted_from, posted_to, keyword, set_aside, state, limit = 10 } = args;
-    
+
     // Use environment variable if API key not provided in args
     const samApiKey = api_key || process.env.SAM_GOV_API_KEY;
-    
+
     if (!samApiKey) {
       throw new Error("SAM.gov API key is required. Please provide it as a parameter or set SAM_GOV_API_KEY environment variable");
     }
-    
+
     if (!posted_from || !posted_to) {
       throw new Error("Both posted_from and posted_to dates are required");
     }
@@ -216,8 +216,8 @@ export const samTools = {
     if (set_aside) params.typeOfSetAside = set_aside;
     if (state) params.state = state;
 
-    const response = await ApiClient.samGet('/opportunities/v2/search', params);
-    
+    const response = await ApiClient.samGet('/prod/opportunities/v2/search', params);
+
     if (!response.success) {
       return { error: response.error };
     }
@@ -253,14 +253,14 @@ export const samTools = {
 
   async getEntityDetails(args: any): Promise<any> {
     const { api_key, uei } = args;
-    
+
     // Use environment variable if API key not provided in args
     const samApiKey = api_key || process.env.SAM_GOV_API_KEY;
-    
+
     if (!samApiKey) {
       throw new Error("SAM.gov API key is required. Please provide it as a parameter or set SAM_GOV_API_KEY environment variable");
     }
-    
+
     if (!uei) {
       throw new Error("UEI is required");
     }
@@ -271,8 +271,8 @@ export const samTools = {
       includeSections: 'entityRegistration,coreData,assertions,pointsOfContact'
     };
 
-    const response = await ApiClient.samGet('/entity-information/v4/entities', params);
-    
+    const response = await ApiClient.samGet('/entity-information/v2/entities', params);
+
     if (!response.success) {
       return { error: response.error };
     }
@@ -319,10 +319,10 @@ export const samTools = {
 
   async checkExclusions(args: any): Promise<any> {
     const { api_key, uei, entity_name } = args;
-    
+
     // Use environment variable if API key not provided in args
     const samApiKey = api_key || process.env.SAM_GOV_API_KEY;
-    
+
     if (!samApiKey) {
       throw new Error("SAM.gov API key is required. Please provide it as a parameter or set SAM_GOV_API_KEY environment variable");
     }
@@ -336,8 +336,8 @@ export const samTools = {
     if (uei) params.ueiSAM = uei;
     if (entity_name) params.entityName = entity_name;
 
-    const response = await ApiClient.samGet('/entity-information/v4/exclusions', params);
-    
+    const response = await ApiClient.samGet('/entity-information/v2/exclusions', params);
+
     if (!response.success) {
       return { error: response.error };
     }
