@@ -340,6 +340,22 @@ export const highergovTools = {
         },
       },
       {
+        name: 'search_highergov_forecasts',
+        description:
+          'Pull PRE-RFP / forecast opportunities (agency-projected upcoming work — distinct from posted solicitations). HigherGov surfaces forecasts through the opportunity dataset via a saved search: build a forecast-scoped saved search in the HigherGov UI and pass its SearchID. For posted/active solicitations use search_highergov_opportunities instead.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            saved_search_id: { type: 'string', description: 'HigherGov SearchID (from the saved-search URL) scoped to forecasts / pre-RFP.' },
+            captured_date: { type: 'string', description: 'YYYY-MM-DD snapshot date (optional).' },
+            status: { type: 'string', description: '"open" or "closed" (optional).' },
+            limit: { type: 'number', description: 'Page size, default 25, max 100.' },
+            cursor: { type: 'string', description: 'Page number from a prior next_cursor.' },
+          },
+          required: ['saved_search_id'],
+        },
+      },
+      {
         name: 'get_highergov_opportunity',
         description:
           'Get one opportunity by HigherGov opp_key, SAM notice id (source_id), or URL. Returns full agency, NAICS/PSC, set-aside, dates, value estimates, contacts, description, and the SAM.gov source link.',
@@ -382,8 +398,7 @@ export const highergovTools = {
       switch (name) {
         case 'search_highergov_contracts': return await this.searchContracts(sanitized);
         case 'get_highergov_contract': return await this.getContract(sanitized);
-        // Back-compat alias: the old build exposed "search_highergov_forecasts".
-        case 'search_highergov_forecasts':
+        case 'search_highergov_forecasts': return await this.searchForecasts(sanitized);
         case 'search_highergov_opportunities': return await this.searchOpportunities(sanitized);
         case 'get_highergov_opportunity': return await this.getOpportunity(sanitized);
         case 'search_highergov_people': return await this.searchPeople(sanitized);
@@ -484,6 +499,27 @@ export const highergovTools = {
     if (naics) results = results.filter(r => r.naics === naics); // client-side NAICS filter
     return {
       results,
+      next_cursor: nextPage(res.data),
+      total: res.data?.meta?.pagination?.count ?? null,
+    };
+  },
+
+  async searchForecasts(args: any) {
+    const apiKey = getApiKey(args);
+    if (!args.saved_search_id) {
+      return errorResponse('bad_request', 'saved_search_id is required — build a forecast-scoped saved search in HigherGov and pass its SearchID.');
+    }
+    const limit = Math.min(Math.max(Number(args.limit) || 25, 1), 100);
+    const params: Record<string, any> = { search_id: String(args.saved_search_id), page_size: limit };
+    if (args.captured_date) params.captured_date = String(args.captured_date);
+    if (args.status) params.status = String(args.status);
+    const page = pageArg(args.cursor);
+    if (page) params.page_number = page;
+
+    const res = await ApiClient.highergovGet('/opportunity/', params, apiKey);
+    if (!res.success) return classifyUpstreamError(res.error);
+    return {
+      results: resultArray(res.data).map(normalizeOpportunity),
       next_cursor: nextPage(res.data),
       total: res.data?.meta?.pagination?.count ?? null,
     };
