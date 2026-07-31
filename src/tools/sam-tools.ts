@@ -268,7 +268,7 @@ export const samTools = {
     const params = {
       api_key: samApiKey,
       ueiSAM: uei,
-      includeSections: 'entityRegistration,coreData,assertions,pointsOfContact'
+      includeSections: 'entityRegistration,coreData'
     };
 
     const response = await ApiClient.samGet('/entity-information/v2/entities', params);
@@ -296,24 +296,28 @@ export const samTools = {
       },
       coreData: {
         entityStructure: entityData.coreData?.entityInformation?.entityStructureCode,
-        businessTypes: entityData.entityRegistration?.businessTypes?.businessTypeList?.map((bt: any) => ({
-          code: bt.businessTypeCode,
-          description: bt.businessTypeDesc
-        })),
+        businessTypes: Array.isArray(entityData.entityRegistration?.businessTypes?.businessTypeList)
+          ? entityData.entityRegistration.businessTypes.businessTypeList.map((bt: any) => ({
+              code: bt.businessTypeCode,
+              description: bt.businessTypeDesc
+            }))
+          : [],
         primaryNaics: entityData.coreData?.naicsInformation?.primaryNaics
       },
       address: {
         physical: entityData.entityRegistration?.physicalAddress,
         mailing: entityData.entityRegistration?.mailingAddress
       },
-      pointsOfContact: entityData.pointsOfContact?.map((poc: any) => ({
-        type: poc.contactType,
-        firstName: poc.firstName,
-        lastName: poc.lastName,
-        title: poc.title,
-        email: poc.email,
-        phone: poc.phone
-      }))
+      pointsOfContact: Array.isArray(entityData.pointsOfContact)
+        ? entityData.pointsOfContact.map((poc: any) => ({
+            type: poc.contactType,
+            firstName: poc.firstName,
+            lastName: poc.lastName,
+            title: poc.title,
+            email: poc.email,
+            phone: poc.phone
+          }))
+        : []
     };
   },
 
